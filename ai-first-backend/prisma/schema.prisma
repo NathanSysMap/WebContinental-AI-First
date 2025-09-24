@@ -1,0 +1,246 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  image     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products    Product[]
+}
+
+model Product {
+  id              Int        @id @default(autoincrement())  
+  name            String
+  description     String?
+  price           Float
+  weight          Float
+  height          Float
+  width           Float
+  length          Float
+  brand           String?
+  model           String?
+  voltage         String?
+  category        String?
+  subcategory     String?
+  imageUrl        String?
+  stock           Int           @default(0)
+  active          Boolean       @default(true)
+  tags            String[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  userId String
+  user   User          @relation(fields: [userId], references: [id])
+  items  OrderItem[]
+  cartItems CartItem[]
+  productsHistory ProductHistory[]
+}
+
+model Order {
+  id              Int        @id @default(autoincrement())
+  status          OrderStatus @default(ABERTO)
+  customerId      String
+  total           Float
+  shippingCost    Float
+  shippingMethod  String
+  deliveryMinDate DateTime?
+
+  installerId     String?
+  assemblyDate    DateTime?
+  shift           Shift
+
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  items  OrderItem[]
+  installer Installer? @relation(fields: [installerId], references: [id])
+}
+
+model OrderItem {
+  id        Int        @id @default(autoincrement())
+  quantity  Int
+  productId Int
+  orderId   Int
+  unitPrice Float
+  name      String
+  imageUrl     String?
+
+  product Product @relation(fields: [productId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id])
+}
+
+model Cart {
+  id          Int        @id @default(autoincrement())
+  customerId  String?
+  customerPhone String
+  items       CartItem[]
+  totalWeight Float?
+  totalHeigt  Float?
+  totalWidth  Float?
+  totalLength Float?
+  status      CartStatus @default(ATIVO)
+       
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+}
+
+enum CartStatus {
+  ATIVO
+  FINALIZADO
+  ABANDONADO
+}
+
+model CartItem {
+  id        Int        @id @default(autoincrement())
+  quantity  Int
+  productId Int
+  cartId    Int
+  name      String
+  unitPrice Float
+
+  product Product @relation(fields: [productId], references: [id])
+  cart   Cart   @relation(fields: [cartId], references: [id])
+}
+
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  cpf       String   @unique
+  phone     String
+  email     String?
+  orders    Order[]
+  addresses CustomerAddress[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model CustomerAddress {
+  id          String   @id @default(uuid())
+  customerId  String
+  street      String   
+  number      String
+  city        String
+  state       String
+  zipCode     String
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  customer    Customer @relation(fields: [customerId], references: [id])
+}
+
+model AgentPrompt {
+  id               String   @id @default(uuid())
+  systemPrompt     String
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model AgentDocument {
+  id               String   @id @default(uuid())
+  name             String
+  fileUrl          String
+  content          String
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+enum OrderStatus {
+  ABERTO 
+  ACEITO
+  RECUSADO
+  PREPARACAO
+  DESLOCAMENTO
+  CONCLUIDO
+  CANCELADO
+  SUSPENSO
+}
+
+model Installer {
+  id        String   @id @default(uuid())
+  name      String
+  cpf       String   @unique
+  phone     String
+  email     String?
+  active    Boolean  @default(true)
+
+  city      String
+  state     String
+  
+  availability InstallerAvailability[]
+  orders    Order[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model InstallerAvailability {
+  id               Int        @id @default(autoincrement())
+  installerId      String
+  date             DateTime
+  shift            Shift
+  available        Boolean  @default(true)
+  
+  installer        Installer @relation(fields: [installerId], references: [id])
+
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+enum Shift {
+  MANHA
+  TARDE
+}
+
+model ProductHistory {
+  id              Int        @id @default(autoincrement())
+  productId       Int       
+  name            String
+  description     String?
+  price           Float
+  weight          Float
+  height          Float
+  width           Float
+  length          Float
+  brand           String?
+  model           String?
+  ean             String?
+  voltage         String?
+  category        String?
+  subcategory     String?
+  imageUrl        String?
+  stock           Int           
+  active          Boolean       
+  tags            String[]
+  action          String
+  changedBy       String
+  createdAt       DateTime      @default(now())
+
+  product         Product       @relation(fields: [productId], references: [id])
+}
