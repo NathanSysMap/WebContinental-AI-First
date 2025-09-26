@@ -1,46 +1,12 @@
-export interface Company {
-  id: string;
-  corporateName: string;
-  tradeName: string;
-  cnpj: string;
-  website?: string;
-  businessSegment: string;
-  contact: CompanyContact;
-  address: CompanyAddress;
-}
-
-export interface CompanyContact {
-  id: string;
-  phone: string;
-  email: string;
-  whatsapp: string;
-  legalRepresentative: string;
-  representativeEmail: string;
-  companyId: string;
-}
-
-export interface CompanyAddress {
-  id: string;
-  zipCode: string;
-  street: string;
-  number: string;
-  complement?: string;
-  district: string;
-  city: string;
-  state: string;
-  country: string;
-  companyId: string;
-}
-
+// ---- Users ----
 export interface User {
   id: string;
   email: string;
   name: string;
   image?: string;
-  tenantId: string;
-  companyId?: string;
   createdAt: string;
-  company: Company;
+  updatedAt?: string;
+  products?: Product[];
 }
 
 export interface AuthUser {
@@ -48,93 +14,187 @@ export interface AuthUser {
   email: string;
   name: string;
   image?: string;
-  tenantId: string;
-  companyId?: string;
-  companyName?: string;
 }
 
+// ---- Products ----
 export interface Product {
-  id: string;
+  id: number; // Prisma Int
   name: string;
-  description?: string;
+  description?: string | null;
   price: number;
   weight: number;
   height: number;
   width: number;
   length: number;
-  unit: string;
-  category: string;
-  subcategory: string;
-  imageUrl: string;
+  brand?: string | null;
+  model?: string | null;
+  voltage?: string | null;
+  category?: string | null;
+  subcategory?: string | null;
+  imageUrl?: string | null;
   stock: number;
   active: boolean;
-  productType: ProductType;
-  tags?: string[];
+  tags: string[];
   userId: string;
   user?: User;
+  createdAt: string;
+  updatedAt: string;
+  productsHistory?: ProductHistory[];
 }
 
-export type ProductType = 'PRODUTO' | 'SERVICO' | 'CURSO' | 'ASSINATURA';
+export interface ProductHistory {
+  id: number; // Prisma Int
+  productId: number;
+  name: string;
+  description?: string | null;
+  price: number;
+  weight: number;
+  height: number;
+  width: number;
+  length: number;
+  brand?: string | null;
+  model?: string | null;
+  ean?: string | null;
+  voltage?: string | null;
+  category?: string | null;
+  subcategory?: string | null;
+  imageUrl?: string | null;
+  stock: number;
+  active: boolean;
+  tags: string[];
+  action: string;
+  changedBy: string;
+  createdAt: string;
+}
 
-/*export interface Employee {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  companyId: string;
-  status: 'active' | 'inactive' | 'pending';
-}*/
-
+// ---- Customers ----
 export interface Customer {
-  id: string;
+  id: string; // Prisma String (uuid)
   name: string;
   phone: string;
-  email: string;
+  email?: string | null;
   cpf: string;
   addresses: CustomerAddress[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CustomerAddress {
-  id: string;
+  id: string; // Prisma String (uuid)
   customerId: string;
   zipCode: string;
   street: string;
   number: string;
-  district: string;
   city: string;
   state: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
+// ---- Orders ----
+export type OrderStatus =
+  | 'ABERTO'
+  | 'ACEITO'
+  | 'RECUSADO'
+  | 'PREPARACAO'
+  | 'DESLOCAMENTO'
+  | 'CONCLUIDO'
+  | 'CANCELADO'
+  | 'SUSPENSO';
+
+export type Shift = 'MANHA' | 'TARDE';
+
 export interface OrderItem {
-  id: string;
-  productId: string;
-  orderId: string;
+  id: number; // Prisma Int
+  productId: number;
+  orderId: number;
   quantity: number;
   unitPrice: number;
-  product: Product;
+  name: string;
+  imageUrl?: string | null;
+  product?: Product; // pode vir via include
+  order?: Order;
 }
 
 export interface Order {
-  id: string;
+  id: number; // Prisma Int
   total: number;
   createdAt: string;
+  updatedAt: string;
   customerId: string;
-  tenantId: string;
   items: OrderItem[];
   customer: Customer;
   status: OrderStatus;
   shippingCost: number;
   shippingMethod: string;
+
+  // Novos/alterados conforme schema
+  deliveryMinDate?: string | null;
+  installerId?: string | null;
+  assemblyDate?: string | null;
+  shift: Shift; // no schema não é nullable
+  installer?: Installer | null;
 }
 
-export type OrderStatus =
-  | 'ABERTO' | 'ACEITO' | 'RECUSADO' | 'PREPARACAO' | 'DESLOCAMENTO' | 'SUSPENSO' | 'CONCLUIDO' | 'CANCELADO';
+// ---- Cart ----
+export type CartStatus = 'ATIVO' | 'FINALIZADO' | 'ABANDONADO';
 
+export interface CartItem {
+  id: number; // Prisma Int
+  quantity: number;
+  productId: number;
+  cartId: number;
+  name: string;
+  unitPrice: number;
+  product?: Product;
+  cart?: Cart;
+}
 
+export interface Cart {
+  id: number; // Prisma Int
+  customerId?: string | null;
+  customerPhone: string;
+  items: CartItem[];
+  totalWeight?: number | null;
+  /** Atenção: o schema tem 'totalHeigt' (typo). O backend enviará esse nome. */
+  totalHeigt?: number | null;
+  totalWidth?: number | null;
+  totalLength?: number | null;
+  status: CartStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ---- Installers ----
+export interface Installer {
+  id: string; // Prisma String (uuid)
+  name: string;
+  cpf: string;
+  phone: string;
+  email?: string | null;
+  active: boolean;
+  city: string;
+  state: string;
+  availability?: InstallerAvailability[];
+  orders?: Order[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface InstallerAvailability {
+  id: number; // Prisma Int
+  installerId: string;
+  date: string; // DateTime
+  shift: Shift;
+  available: boolean;
+  installer?: Installer;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// ---- Agent content ----
 export interface AgentPrompt {
   id: string;
-  tenantId: string;
   systemPrompt: string;
   createdAt: string;
   updatedAt: string;
@@ -142,9 +202,9 @@ export interface AgentPrompt {
 
 export interface AgentDocument {
   id: string;
-  tenantId: string;
   name: string;
   fileUrl: string;
   content: string;
   createdAt: string;
+  updatedAt: string;
 }

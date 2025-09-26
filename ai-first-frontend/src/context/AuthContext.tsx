@@ -31,9 +31,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const decoded = jwtDecode<AuthUser & {userId: string}>(token);
             setUser({
                 id: decoded.userId,
-                companyId: decoded.companyId,
-                companyName: decoded.companyName,
-                tenantId: decoded.tenantId,
                 name: decoded.name,
                 email: decoded.email,
                 image: decoded.image

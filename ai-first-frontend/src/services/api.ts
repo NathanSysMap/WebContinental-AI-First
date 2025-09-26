@@ -59,7 +59,7 @@ export const useApi = () => {
     }
 
     const fetchOrders = async () => {
-        const res = await fetch(`${API_BASE}/orders/tenant`, {
+        const res = await fetch(`${API_BASE}/orders/`, {
             headers: getAuthHeaders(),
         });
 

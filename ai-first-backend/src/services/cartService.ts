@@ -241,7 +241,7 @@ export async function calcShippingCart(cartId: number, destinyZipCode: string) {
         exhibitionName: `${sedex.company.name} - ${sedex.name}`,
         shippingPrice: Number(sedex.price),
         deliveryTime: Number(sedex.delivery_time),
-        dilveryMinDate: new Date(Date.now() + Number(sedex.delivery_time) * 24 * 60 * 60 * 1000),
+        deliveryMinDate: new Date(Date.now() + Number(sedex.delivery_time) * 24 * 60 * 60 * 1000),
         shippingCompany: sedex.company.name,
         service: sedex.name
     };
